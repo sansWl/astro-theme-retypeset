@@ -1,0 +1,106 @@
+---
+import { defaultLocale } from '@/config'
+
+type Props = {
+  currentPage: number
+  totalPages: number
+  lang: string
+}
+
+const { currentPage, totalPages, lang } = Astro.props
+
+// 生成页码数组
+function generatePageNumbers(current: number, total: number): (number | '...')[] {
+  const pageNumbers: (number | '...')[] = []
+  const maxVisiblePages = 5
+
+  if (total <= maxVisiblePages) {
+    // 如果总页数小于等于最大可见页数，显示所有页码
+    for (let i = 1; i <= total; i++) {
+      pageNumbers.push(i)
+    }
+  }
+ else {
+    // 显示第一页
+    pageNumbers.push(1)
+
+    // 计算中间区域
+    const delta = Math.floor(maxVisiblePages / 2)
+    const start = Math.max(2, current - delta)
+    const end = Math.min(total - 1, current + delta)
+
+    // 中间是否有省略号
+    if (start > 2) {
+      pageNumbers.push('...')
+    }
+
+    // 显示中间页码
+    for (let i = start; i <= end; i++) {
+      pageNumbers.push(i)
+    }
+
+    // 末尾是否有省略号
+    if (end < total - 1) {
+      pageNumbers.push('...')
+    }
+
+    // 显示最后一页
+    pageNumbers.push(total)
+  }
+
+  return pageNumbers
+}
+
+const pageNumbers = generatePageNumbers(currentPage, totalPages)
+const langPath = lang === defaultLocale ? '' : `${lang}/`
+---
+
+<div class="pagination-container mt-10 flex justify-center">
+  <nav class="pagination flex items-center gap-1.5 text-3.5">
+    {/* 上一页按钮 */}
+    {currentPage > 1 && (
+      <a
+        href={currentPage === 2 ? `/${langPath}` : `/${langPath}page/${currentPage - 1}/`}
+        class="pagination-prev border rounded-md px-2.5 py-1.5 transition-all hover:border-primary/30"
+        aria-label="Previous page"
+      >
+        上一页
+      </a>
+    )}
+
+    {/* 页码按钮 */}
+    {pageNumbers.map((pageNumber) => {
+      if (pageNumber === '...') {
+        return (
+          <span class="px-2 py-1.5">...</span>
+        )
+      }
+
+      const isActive = pageNumber === currentPage
+      // const pagePath = pageNumber === 1 ? '' : `page/${pageNumber}`
+
+      return (
+        <a
+          href={pageNumber === 1 ? `/${langPath}` : `/${langPath}page/${pageNumber}/`}
+          class={` pagination-page rounded-md px-3 py-1.5 transition-all ${isActive
+              ? 'bg-primary/10 text-primary border border-primary/30'
+              : 'border hover:border-primary/30'}  `}
+          aria-current={isActive ? 'page' : undefined}
+        >
+          {pageNumber}
+        </a>
+      )
+    })}
+
+    {/* 下一页按钮 */}
+    {currentPage < totalPages && (
+      <a
+        href={langPath ? `/${langPath}page/${currentPage + 1}/` : `/page/${currentPage + 1}/`}
+        class="pagination-next border rounded-md px-2.5 py-1.5 transition-all hover:border-primary/30"
+        aria-label="Next page"
+      >
+        下一页
+      </a>
+    )}
+  </nav>
+</div>

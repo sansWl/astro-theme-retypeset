@@ -160,6 +160,76 @@ async function _getPostsByYear(lang?: string): Promise<Map<number, Post[]>> {
 
 export const getPostsByYear = memoize(_getPostsByYear)
 
+
+/**
+ * Get paginated posts
+ *
+ * @param lang The language code to filter by, defaults to site's default language
+ * @param page Current page number (starts from 1)
+ * @param pageSize Number of posts per page
+ * @returns Paginated posts information with metadata
+ */
+async function _getPaginatedPosts(lang?: string, page: number = 1, pageSize: number = 10) {
+  const allPosts = await getRegularPosts(lang)
+  const totalPosts = allPosts.length
+  const totalPages = Math.max(1, Math.ceil(totalPosts / pageSize))
+  const currentPage = Math.max(1, Math.min(page, totalPages))
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, totalPosts)
+  
+  // 对分页后的文章按年份分组
+  const paginatedPosts = allPosts.slice(startIndex, endIndex)
+  const yearMap = new Map<number, Post[]>()
+  
+  paginatedPosts.forEach((post: Post) => {
+    const year = post.data.published.getFullYear()
+    if (!yearMap.has(year)) {
+      yearMap.set(year, [])
+    }
+    yearMap.get(year)!.push(post)
+  })
+  
+  // 对每年内的文章按日期排序
+  yearMap.forEach((yearPosts) => {
+    yearPosts.sort((a, b) => {
+      const aDate = a.data.published
+      const bDate = b.data.published
+      return bDate.getMonth() - aDate.getMonth() || bDate.getDate() - aDate.getDate()
+    })
+  })
+  
+  // 按年份降序排列
+  const sortedYearMap = new Map([...yearMap.entries()].sort((a, b) => b[0] - a[0]))
+  
+  return {
+    posts: sortedYearMap,
+    totalPosts,
+    totalPages,
+    currentPage
+  }
+}
+
+export const getPaginatedPosts = memoize(_getPaginatedPosts)
+
+/**
+ * Get pagination info
+ *
+ * @param lang The language code to filter by, defaults to site's default language
+ * @param pageSize Number of posts per page
+ * @returns Pagination metadata
+ */
+async function _getPaginationMeta(lang?: string, pageSize: number = 10) {
+  const totalPosts = (await getRegularPosts(lang)).length
+  const totalPages = Math.max(1, Math.ceil(totalPosts / pageSize))
+  
+  return {
+    totalPosts,
+    totalPages
+  }
+}
+
+export const getPaginationMeta = memoize(_getPaginationMeta)
+
 /**
  * Group posts by their tags
  *

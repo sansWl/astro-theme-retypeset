@@ -12,6 +12,7 @@ export interface ThemeConfig {
     url: string
     base: string
     favicon: string
+    pageSize: number
   }
   color: {
     mode: 'light' | 'dark' | 'auto'

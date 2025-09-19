@@ -1,43 +1,72 @@
 ---
+import Pagination from '@/components/Pagination.astro'
 import PostList from '@/components/PostList.astro'
-import { defaultLocale, moreLocales } from '@/config'
+import { defaultLocale, moreLocales, themeConfig } from '@/config'
 import Layout from '@/layouts/Layout.astro'
-import { getPinnedPosts, getPostsByYear } from '@/utils/content'
+import { getPaginatedPosts, getPaginationMeta, getPinnedPosts } from '@/utils/content'
+
+const { lang, page } = Astro.props
+
+const pageSize = themeConfig.site.pageSize
 
 export async function getStaticPaths() {
+  // 使用配置中的pageSize
+  const internalPageSize = themeConfig.site.pageSize
+
   type PathItem = {
     params: { index: string | undefined }
-    props: { lang: string }
+    props: { lang: string, page: number }
   }
 
   const paths: PathItem[] = []
 
-  // Default locale
-  paths.push({
-    params: { index: undefined },
-    props: { lang: defaultLocale },
-  })
+  // 为每种语言生成页面路径
+  const allLocales = [defaultLocale, ...moreLocales]
 
-  // More locales
-  moreLocales.forEach((lang: string) => {
-    paths.push({
-      params: { index: `${lang}/` },
-      props: { lang },
-    })
-  })
+  for (const locale of allLocales) {
+    const { totalPages } = await getPaginationMeta(locale, internalPageSize)
+
+    // 第一页 (默认页)
+    if (locale === defaultLocale) {
+      paths.push({
+        params: { index: undefined },
+        props: { lang: locale, page: 1 },
+      })
+    }
+ else {
+      paths.push({
+        params: { index: `${locale}/` },
+        props: { lang: locale, page: 1 },
+      })
+    }
+
+    // 生成其他分页路径
+    for (let i = 2; i <= totalPages; i++) {
+      if (locale === defaultLocale) {
+        paths.push({
+          params: { index: `page/${i}` },
+          props: { lang: locale, page: i },
+        })
+      }
+ else {
+        paths.push({
+          params: { index: `${locale}/page/${i}` },
+          props: { lang: locale, page: i },
+        })
+      }
+    }
+  }
 
   return paths
 }
 
-const { lang } = Astro.props
-
 const pinnedPosts = await getPinnedPosts(lang)
-const postsByYear = await getPostsByYear(lang)
+const { posts: paginatedPostsByYear, totalPages, currentPage } = await getPaginatedPosts(lang, page, pageSize)
 ---
 
 <Layout>
   <!-- Pinned Posts -->
-  {pinnedPosts.length > 0 && (
+  {pinnedPosts.length > 0 && page === 1 && (
     <section class="mb-7.5">
       <div class="uno-decorative-line" />
       <PostList posts={pinnedPosts} lang={lang} pinned={true} />
@@ -45,10 +74,16 @@ const postsByYear = await getPostsByYear(lang)
   )}
 
   <!-- Regular Posts -->
-  {[...postsByYear.entries()].map(([_year, posts]) => (
+  {[...paginatedPostsByYear.entries()].map(([year, posts]) => (
     <section class="mb-7.5">
       <div class="uno-decorative-line" />
+      <h2 class="mb-3 text-4 font-medium">{year}</h2>
       <PostList posts={posts} lang={lang} />
-    </section>
+  </section>
   ))}
+
+  <!-- Pagination -->
+  {totalPages > 1 && (
+    <Pagination currentPage={currentPage} totalPages={totalPages} lang={lang} />
+  )}
 </Layout>

@@ -12,7 +12,11 @@ function isPageType(path: string, prefix: string = '') {
   const normalizedPath = pathWithoutBase.replace(/^\/|\/$/g, '')
 
   if (prefix === '') {
-    return normalizedPath === '' || moreLocales.includes(normalizedPath)
+    // 首页路径包括: 空路径、语言路径、分页路径
+    return normalizedPath === ''
+      || moreLocales.includes(normalizedPath)
+      || normalizedPath.startsWith('page/')
+      || moreLocales.some(lang => normalizedPath.startsWith(`${lang}/page/`))
   }
 
   return normalizedPath.startsWith(prefix)
