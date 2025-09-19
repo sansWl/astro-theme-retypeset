@@ -51,7 +51,7 @@ jobs:
         with:
           personal_token: ${{ secrets.PERSONAL_TOKEN }}
           external_repository: sansWl/sansWl.github.io
-          publish_branch: main
+          publish_branch: pages
           publish_dir: ./dist
           allow_empty_commit: false
           commit_message: 'Deploy from astro-theme-retypeset (${{ github.sha }})'
