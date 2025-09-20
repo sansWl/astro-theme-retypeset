@@ -40,7 +40,7 @@ export interface Props {
             transition:name={`post-${slug}${lang ? `-${lang}` : ''}`}
             data-disable-theme-transition
           >
-            {post.data.title}
+           <em style="font-weight: bold;"> {post.data.title} </em> 
           </a>
           {/* pinned icon */}
           {pinned && (
