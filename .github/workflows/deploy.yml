@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+on:
+  # 当推送到 main 分支时触发
+  push:
+    branches:
+      - main
+  # 允许手动触发 workflow
+  workflow_dispatch:
+
+# 设置 GITHUB_TOKEN 的权限
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 安装 pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      # 设置 Node.js 环境
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      # 安装依赖
+      - name: Install dependencies
+        run: pnpm install
+
+      # 构建项目
+      - name: Build project
+        run: pnpm build
+
+      # 部署到 sansWl.github.io 仓库
+      - name: Deploy to sansWl.github.io
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          external_repository: sansWl/sansWl.github.io
+          publish_branch: pages
+          publish_dir: ./dist
+          allow_empty_commit: false
+          commit_message: 'Deploy from astro-theme-retypeset (${{ github.sha }})'
+          full_commit_message: |
+            Deploy from astro-theme-retypeset
+            
+            Triggered by commit ${{ github.sha }} in ${{ github.repository }}
+            Author: ${{ github.actor }}
