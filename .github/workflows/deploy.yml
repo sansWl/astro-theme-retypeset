@@ -44,6 +44,10 @@ jobs:
       # 构建项目
       - name: Build project
         run: pnpm build
+        
+      # 创建 CNAME 文件
+      - name: Create CNAME file
+        run: echo "blog.sanswl.fun" > ./dist/CNAME
 
       # 部署到 sansWl.github.io 仓库
       - name: Deploy to sansWl.github.io
