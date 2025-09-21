@@ -16,7 +16,9 @@ https://docs.cnb.cool/zh/vscode/quick-start.html
 **开始部署**
 > 1. 创建一个仓库,开启云平台初始化，使用cnb-init-from ~~https://your-git.com/your-repo.git~~
  ~~git clone~~ https://github.com/infiniflow/ragflow.git [RAGFlow的GitHub仓库]
+
 ![](https://img2024.cnblogs.com/blog/3426265/202503/3426265-20250304023728808-769939825.png)
+
 **初始化后，使其文件依赖结构如图所示，否则ragflow-server启动将失败**
 **OSError: [Errno loading yaml file config from /ragflow/conf/service_conf.yaml failed:] [Errno 2] No such file or directory: '/ragflow/conf/service_conf.yaml'**
 

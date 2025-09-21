@@ -171,10 +171,14 @@ public class WetherMcpServer {
 
  ### 4. 测试MCP
  1. 配置MCP服务，以Cherry Studio为例
- ![image](https://img2024.cnblogs.com/blog/3426265/202509/3426265-20250920233729526-2061079896.png)
- ![image](https://img2024.cnblogs.com/blog/3426265/202509/3426265-20250920233912778-1981479759.png)
+
+ ![](https://img2024.cnblogs.com/blog/3426265/202509/3426265-20250920233729526-2061079896.png)
+
+ ![](https://img2024.cnblogs.com/blog/3426265/202509/3426265-20250920233912778-1981479759.png)
+
  2. 将MCP服务绑定大模型，再使用对应模型的助手工具进行测试
- ![image](https://img2024.cnblogs.com/blog/3426265/202509/3426265-20250920234132738-763700399.png)
+
+ ![](https://img2024.cnblogs.com/blog/3426265/202509/3426265-20250920234132738-763700399.png)
 
  ### 5. RAG（Retrieval Augmented Generation）
  > 通过指定数据源以增强LLM的生成能力，提高准确性。

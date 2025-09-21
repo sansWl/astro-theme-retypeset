@@ -4,7 +4,7 @@
  tags:
   - BlogPost
  lang: zh
- abbrlink:  47690543-517e 
+ abbrlink:  47690543-517e
 ---
 
 # 一：配置
@@ -27,7 +27,8 @@ spring:
             args:
               name: foo,bar
               value: 1,100
-          #uri跳过字段，例如   /service1/hello ==》/hello 
+          #uri跳过字段，例如   /service1/hello ==》/hello
           - StripPrefix=1
 ```
+
 ![](https://img2024.cnblogs.com/blog/3426265/202503/3426265-20250311155047870-147292185.png)
