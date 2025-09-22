@@ -8,9 +8,10 @@
 ---
 
 ### 1. Neo4j 介绍
->![](https://img2024.cnblogs.com/blog/3426265/202508/3426265-20250805171510361-834497409.png)
-> 
-官网文档：https://neo4j.com/docs/getting-started/ 
+
+![](https://img2024.cnblogs.com/blog/3426265/202508/3426265-20250805171510361-834497409.png)
+
+>官网文档：https://neo4j.com/docs/getting-started/ 
 
 ### 2. 数据库实例创建
  * 1 : ***创建免费的云库***
