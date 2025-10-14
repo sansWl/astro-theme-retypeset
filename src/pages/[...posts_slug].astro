@@ -4,6 +4,7 @@ import { getCollection, render } from 'astro:content'
 import Comment from '@/components/Comment/Index.astro'
 import PostDate from '@/components/PostDate.astro'
 import TagList from '@/components/TagList.astro'
+import Tip from '@/components/tip.astro'
 import BackButton from '@/components/Widgets/BackButton.astro'
 import TOC from '@/components/Widgets/TOC.astro'
 import { allLocales, defaultLocale, moreLocales } from '@/config'
@@ -133,6 +134,7 @@ const { Content, headings, remarkPluginFrontmatter } = await render(post)
         updatedDate={post.data.updated}
         minutes={remarkPluginFrontmatter.minutes}
       />
+        {post.data.tips && post.data.tips.length > 0 && <Tip tipText={post.data.tips} />}
     </div>
     <!-- TOC -->
     {post.data.toc && <TOC headings={headings} />}

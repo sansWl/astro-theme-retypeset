@@ -9,6 +9,7 @@ const posts = defineCollection({
     title: z.string(),
     published: z.date(),
     // optional
+    tips: z.array(z.string()).optional().default([]),
     description: z.string().optional().default(''),
     updated: z.preprocess(
       val => val === '' ? undefined : val,

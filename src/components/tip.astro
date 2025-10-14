@@ -1,0 +1,273 @@
+---
+interface Props {
+  tipText?: string[]
+  expanded?: boolean
+}
+
+const {
+  tipText = ['这是一个提示组件'],
+  expanded = false,
+} = Astro.props;
+---
+
+<style>
+  .tip-wrapper {
+    position: fixed !important;
+    width: 40px;
+    height: 40px;
+    z-index: 1000 !important;
+    pointer-events: none;
+    transition: none !important;
+    left: 32px;
+    top: 32px;
+    transform: none !important;
+  }
+
+  .tip-wrapper > * {
+    pointer-events: auto;
+  }
+
+  /* 无需额外的tip-floating类，已默认为fixed定位 */
+
+  .tip-container {
+    position: relative;
+    z-index: 10;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .tip-ball {
+    width: 40px;
+    height: 40px;
+    background-color: #f8e896;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 20;
+    user-select: none;
+  }
+
+  .tip-ball:active {
+    cursor: grabbing;
+  }
+
+  .tip-content {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    background-color: #fffbe6;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 8px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+    border: 1px solid #f8e896;
+  }
+
+  .tip-content::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-bottom-color: #f8e896;
+  }
+
+  .tip-content::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 7px solid transparent;
+    border-bottom-color: #fffbe6;
+    margin-bottom: -1px;
+  }
+
+  .tip-expanded .tip-content {
+    opacity: 1;
+    max-height: 200px;
+  }
+
+  .tip-fixed {
+    position: fixed;
+    z-index: 100;
+  }
+
+
+</style>
+
+<div id="tip-component" class="tip-wrapper">
+  <div class="tip-container" data-expanded={expanded}>
+    <div id="tip-drag-handle" class="tip-ball">
+      <span class="text-xl">💡</span>
+    </div>
+    <div class="tip-content">
+      <ul>
+        {tipText.map(item => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// 初始化组件并添加交互功能
+function initializeTipComponent() {
+  const tipComponent = document.getElementById('tip-component')
+  if (!tipComponent)
+    return
+
+  // 确保组件在document.body中
+  if (tipComponent.parentElement !== document.body) {
+    document.body.appendChild(tipComponent)
+  }
+
+  const tipContainer = tipComponent.querySelector('.tip-container')
+  const dragHandle = document.getElementById('tip-drag-handle')
+
+  if (!tipContainer || !dragHandle)
+    return
+
+  let isDragging = false
+
+  // 确保组件始终浮于内容上方
+  tipComponent.style.transition = 'none !important'
+  tipComponent.style.position = 'fixed'
+  tipComponent.style.zIndex = '1000'
+
+  // 初始化展开状态
+  if (tipContainer && tipContainer.getAttribute('data-expanded') === 'true') {
+    tipContainer.classList.add('tip-expanded')
+  }
+
+  // 阻止文本选中
+  const preventTextSelection = (e: Event) => {
+    if (isDragging) {
+      e.preventDefault()
+    }
+  }
+
+  document.addEventListener('selectstart', preventTextSelection)
+  document.addEventListener('dragstart', preventTextSelection)
+
+  // 极简拖拽实现 - 解决无法移动到左边的问题
+  const handleDragStart = (e: MouseEvent) => {
+    e.preventDefault() // 防止默认拖拽行为
+
+    // 直接从样式获取当前位置，确保能读取到正确的值
+    const startLeft = Number.parseInt(tipComponent.style.left) || 32
+    const startTop = Number.parseInt(tipComponent.style.top) || 32
+
+    // 记录鼠标按下时的位置
+    const startMouseX = e.clientX
+    const startMouseY = e.clientY
+
+    isDragging = true
+
+    // 拖拽处理 - 确保可以移动到左边
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging)
+        return
+
+      // 计算鼠标移动的距离
+      const deltaX = e.clientX - startMouseX
+      const deltaY = e.clientY - startMouseY
+
+      // 基于初始位置和移动距离计算新位置
+      let newLeft = startLeft + deltaX
+      let newTop = startTop + deltaY
+
+      // 限制组件在视口内 - 允许移动到最左侧
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      const componentWidth = tipComponent.offsetWidth
+      const componentHeight = tipComponent.offsetHeight
+
+      // 修复：允许移动到左边（left: 0）
+      newLeft = Math.max(0, Math.min(newLeft, viewportWidth - componentWidth))
+      newTop = Math.max(0, Math.min(newTop, viewportHeight - componentHeight))
+
+      // 强制应用fixed定位，防止被其他样式覆盖
+      tipComponent.style.position = 'fixed'
+      tipComponent.style.zIndex = '1000'
+
+      // 直接设置位置
+      tipComponent.style.left = `${Math.round(newLeft)}px`
+      tipComponent.style.top = `${Math.round(newTop)}px`
+    }
+
+    const handleMouseUp = () => {
+      if (isDragging) {
+        isDragging = false
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+
+        // 鼠标松开后再次确保fixed定位
+        tipComponent.style.position = 'fixed'
+        tipComponent.style.zIndex = '1000'
+      }
+    }
+
+    // 添加事件监听器
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  // 点击展开/收起功能
+  const handleClick = () => {
+    if (isDragging)
+      return
+
+    const isExpanded = tipContainer.classList.contains('tip-expanded')
+
+    if (!isExpanded) {
+      tipContainer.classList.add('tip-expanded')
+    }
+    else {
+      tipContainer.classList.remove('tip-expanded')
+    }
+  }
+
+  // 移除旧的事件监听器，防止多次绑定
+  dragHandle.removeEventListener('mousedown', handleDragStart)
+  dragHandle.removeEventListener('click', handleClick)
+
+  // 添加新的事件监听器
+  dragHandle.addEventListener('mousedown', handleDragStart)
+  dragHandle.addEventListener('click', handleClick)
+}
+
+// 使用astro特有的页面加载事件，确保在客户端路由导航时也能正确初始化
+function setupTipComponent() {
+  // 尝试立即初始化
+  initializeTipComponent()
+
+  // 在DOMContentLoaded时再次初始化
+  document.addEventListener('DOMContentLoaded', initializeTipComponent)
+
+  // 为客户端路由添加支持（如果使用了Astro的客户端路由）
+  document.addEventListener('astro:after-swap', initializeTipComponent)
+
+  // 页面显示时也重新初始化
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      initializeTipComponent()
+    }
+  })
+}
+
+// 立即执行设置
+setupTipComponent()
+</script>
